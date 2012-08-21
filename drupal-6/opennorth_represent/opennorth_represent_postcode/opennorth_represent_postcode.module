@@ -1,0 +1,151 @@
+<?php
+
+
+
+/**
+ * Implimentation of hook_init()
+ */
+
+function opennorth_represent_postcode_init(){
+  drupal_add_js(drupal_get_path('module', 'opennorth_represent_postcode') . '/js/postcode.js');
+}
+
+
+/**
+ * Implementation of hook_menu().
+ */
+
+function opennorth_represent_postcode_menu(){
+  
+  $items = array();
+
+  $items['opennorth/represent/api/postcode/%'] = array(
+    'page callback'    => 'opennorth_represent_postcode_lookup_postcode',
+    'page arguments'   => array(4),
+    'access callback'  => TRUE,
+    'type'             => MENU_CALLBACK,
+  );
+
+  $items['opennorth/represent/postcode'] = array(
+    'title'            => 'Postal Code Look Up',
+    'description'      => t('Postal Code Look Up'),
+    'access callback'  => TRUE,
+    'page callback'    => 'opennorth_represent_postcode_lookup_postcode_page',
+    'page arguments'   => array(3),
+    'type'             => MENU_NORMAL_ITEM,
+  );
+
+  $items['opennorth/represent/postcode/%'] = array(
+    'title'           => 'Postal Code Look Up',
+    'description'     => t('Postal Code Look Up'),
+   'access callback'  => TRUE,
+   'page callback'    => 'opennorth_represent_postcode_lookup_postcode_page',
+   'page arguments'   => array(3),
+   'type'             => MENU_NORMAL_ITEM,
+  );
+  
+  return $items;
+}
+
+/**
+ * Implementation of hook_forms().
+ */
+
+function opennorth_represent_postcode_forms(){
+  $forms['opennorth_represent_postcode_lookup_postcode_form'] = array(
+    'callback'=>'opennorth_represent_postcode_lookup_postcode_form'
+  );
+  return $forms;
+}
+
+
+
+function opennorth_represent_postcode_lookup_postcode($postcode){
+  print _opennorth_represent_lookup_postcode($postcode);
+  exit;
+}
+
+function opennorth_represent_postcode_lookup_postcode_page($postcode){
+  $output = drupal_get_form('opennorth_represent_postcode_lookup_postcode_form');
+  if ($postcode){
+    $postcode_data = json_decode(_opennorth_represent_postcode_lookup_postcode($postcode)); 
+
+    drupal_set_title(t("Postal code info for @postcode", array('@postcode' => _opennorth_represent_postcode_format_postcode_for_display($postcode))));
+   
+    if (function_exists('dpm') && user_access('administer nodes')){
+      dpm($postcode_data);
+    }
+
+    $formatted_postcode_data = array(
+      array(t('Province'), $postcode_data->province), 
+      array(t('City'), $postcode_data->city)
+    );
+
+    if (is_array($postcode_data->representatives_centroid)){
+      foreach ($postcode_data->representatives_centroid as $i => $representative){
+        $formatted_postcode_data[] = array(
+          t($representative->elected_office), _opennorth_represent_postcode_format_representative_centroid_for_display($representative)
+       );
+      }
+    }
+
+    $output .= theme('table', array(), $formatted_postcode_data);
+  }
+
+  return $output;
+}
+
+function opennorth_represent_postcode_lookup_postcode_form($form_state){
+
+  $form['postcode'] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('Postal Code'),
+    '#default_value' => '',
+    '#size'          => 50,
+    '#maxlength'     => 7,
+    '#required'      => true,
+  );
+  $form['submit'] = array('#type' => 'submit', '#value' => t('Go!'));
+  return $form;
+}
+
+function opennorth_represent_postcode_lookup_postcode_form_validate($form, &$form_state){
+  if(!preg_match('/^[ABCEGHJKLMNPRSTVXY]\d[ABCEGHJKLMNPRSTVWXYZ]\d[ABCEGHJKLMNPRSTVWXYZ]\d$/i', str_replace(' ', '', $form_state['values']['postcode']))){
+    form_set_error('postcode', t('Please enter a valid postal code.'));
+  }
+}
+
+function opennorth_represent_postcode_lookup_postcode_form_submit($form, &$form_state){
+  $form_state['redirect'] = 'opennorth/represent/postcode/' . $form_state['values']['postcode'];
+};
+
+function _opennorth_represent_postcode_lookup_postcode($postcode){
+  $postcode_clean = _opennorth_represent_postcode_format_postcode_for_url($postcode);
+  if (! $postcode_clean){
+    return false;
+  }
+
+  $url = "postcodes/" . $postcode_clean;
+  return _opennorth_represent_http_request($url);
+}
+
+function _opennorth_represent_postcode_format_postcode_for_url($postcode){
+  return strtoupper(str_replace( "\s", '', $postcode));
+}
+
+function _opennorth_represent_postcode_format_postcode_for_display($postcode){
+  return strtoupper(substr_replace(str_replace( "\s", '', $postcode), ' ', 3, 0));
+}
+
+function _opennorth_represent_postcode_format_representative_centroid_for_display($representative){
+  $output .= t($representative->name . '<br />');
+  $output .= $representative->party_name ? t($representative->party_name . '<br />') : '';
+  $output .= t($representative->district_name . '<br />');
+  $output .= t($representative->email . '<br />');
+  $output .= t($representative->url . '<br />');
+
+  return $output;
+}
+
+
+

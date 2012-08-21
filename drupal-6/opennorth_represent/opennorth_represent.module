@@ -1,0 +1,30 @@
+<?php
+
+
+define('OPENNORTH_HTTP_HOST', 'http://represent.opennorth.ca');
+
+/**
+ * Implimentation of hook_init()
+ */
+
+function opennorth_represent_init(){
+  drupal_add_js(drupal_get_path('module', 'opennorth_represent') . '/js/represent.js');
+}
+
+/**
+ * Makes a request to OpenNorth and returns the response content 
+ *
+ * @param $url
+ *   The path to the file. Does not include hostname.
+ */
+
+function _opennorth_represent_http_request($url, $data = array()){
+  $data['format'] = 'json';
+  $request_url = OPENNORTH_HTTP_HOST . '/' . $url . '?' . http_build_query($data);
+  $http_response = drupal_http_request($request_url);
+  return $http_response->data;
+}
+
+
+
+

@@ -1,0 +1,155 @@
+<?php
+
+
+/**
+ * Implementation of hook_menu().
+ */
+function opennorth_represent_representative_menu(){
+  
+  $items = array();
+
+  $items['opennorth/represent/api/representative'] = array(
+    'page callback'    => 'opennorth_represent_representative_lookup_representative',
+    'access callback'  => TRUE,
+    'type'             => MENU_CALLBACK,
+  );
+
+  $items['opennorth/represent/representative'] = array(
+    'title'            => 'Representative Look Up',
+    'description'      => t('Representative Look Up'),
+    'access callback'  => TRUE,
+    'page callback'    => 'opennorth_represent_representative_lookup_representative_page',
+    'type'             => MENU_NORMAL_ITEM,
+  );
+  
+  return $items;
+}
+
+/**
+ * Implementation of hook_forms().
+ */
+function opennorth_represent_representative_forms(){
+  $forms['opennorth_represent_representative_lookup_representative_form'] = array(
+    'callback'=>'opennorth_represent_representative_lookup_representative_form'
+  );
+  return $forms;
+}
+
+
+
+function opennorth_represent_representative_lookup_representative(){
+  print _opennorth_represent_representative_lookup_representative($_GET);
+  exit;
+}
+
+function opennorth_represent_representative_lookup_representative_page(){
+
+  $output = drupal_get_form('opennorth_represent_representative_lookup_representative_form');
+
+  return $output;
+}
+
+function opennorth_represent_representative_lookup_representative_form($form_state){
+
+  $form['name'] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('Name'),
+    '#default_value' => '',
+    '#size'          => 50,
+  );
+
+  $form['first_name'] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('First Name'),
+    '#default_value' => '',
+    '#size'          => 50,
+  );
+
+  $form['last_name'] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('Last Name'),
+    '#default_value' => '',
+    '#size'          => 50,
+  );  
+
+  $form['gender'] = array(
+    '#type'          => 'select',
+    '#title'         => t('Gender'),
+    '#options'       => array(
+                          ''  => t('Choose One...'),
+                          'M' => t('Male'),
+                          'F' => t('Female')
+                       )
+  );  
+
+  $form['elected_office'] = array(
+    '#type'          => 'select',
+    '#title'         => t('Elected Office'),
+    '#options'       => array(
+                          ''  => t('Choose One...'),
+                          'MP'  => t('MP'),
+                          'MLA' => t('MLA'),
+                          'Mayor' => t('Mayor'),
+                          'Councillor' => t('Councillor'),
+                          'Alderman' => t('Alderman')
+                       )
+  );  
+
+  $form['district_name'] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('District Name'),
+    '#default_value' => '',
+    '#size'          => 50,
+  );
+
+  $form['party_name'] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('Party Name'),
+    '#default_value' => '',
+    '#size'          => 50,
+  ); 
+
+
+
+  $form['submit'] = array('#type' => 'submit', '#value' => t('Go!'));
+  return $form;
+}
+
+function opennorth_represent_representative_lookup_representative_form_validate($form, &$form_state){
+  $form_state['values']['first_name']  = ucwords($form_state['values']['first_name']);
+  $form_state['values']['last_name']   = ucwords($form_state['values']['last_name']);
+  $form_state['values']['name']        = ucwords($form_state['values']['name']);
+  $form_state['values']['party_name']  = ucwords($form_state['values']['party_name']);
+
+}
+
+function opennorth_represent_representative_lookup_representative_form_submit($form, &$form_state){
+  if ($form_state['submitted']){
+    $representative_data = json_decode(_opennorth_represent_representative_lookup_representative($form_state['values']));
+    if ($representative_data) {  
+      if (function_exists('dpm') && user_access('administer nodes')){
+        dpm($representative_data);
+      }
+    }
+  }
+};
+
+function _opennorth_represent_representative_lookup_representative($request){
+  if (is_array($request)){
+    $fields = array_keys(opennorth_represent_representative_lookup_representative_form($request));
+     foreach ($fields as $field){
+       if ($field == 'submit'){
+        continue;
+       } elseif ($request[$field]){
+         $data[$field] = $request[$field];
+       }
+    }
+  }
+
+  $url = "representatives";
+  return _opennorth_represent_http_request($url, $data);
+}
+
+
+
+

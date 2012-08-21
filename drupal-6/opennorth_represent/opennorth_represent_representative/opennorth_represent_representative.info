@@ -1,0 +1,7 @@
+; $Id: $
+
+name = Open North Represent API - Representative
+description = Wrapper module for the Open North Represent Representative API
+package = Open North
+core = 6.x
+dependencies[] = opennorth_represent

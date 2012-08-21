@@ -1,0 +1,7 @@
+; $Id: $
+
+name = Open North Represent API - Post code
+description = Wrapper module for the Open North Represent Postcode API
+package = Open North
+core = 6.x
+dependencies[] = opennorth_represent
