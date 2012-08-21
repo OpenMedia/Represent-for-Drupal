@@ -1,6 +1,19 @@
 <?php
 
 
+/*
+ *
+ * USAGE
+ *
+ * /opennorth/represent/postcode - form to enter a post code
+ *
+ * /opennorth/represent/postcode/V6B4C7 - see a dump of info on post code V6B4C7
+ *
+ * /opennorth/represent/api/postcode/V6B4C7 - Dump the raw JSON from Represent for post code V6B4C7
+ *
+ */
+
+
 
 /**
  * Implimentation of hook_init()
@@ -29,19 +42,19 @@ function opennorth_represent_postcode_menu(){
   $items['opennorth/represent/postcode'] = array(
     'title'            => 'Postal Code Look Up',
     'description'      => t('Postal Code Look Up'),
-    'access callback'  => TRUE,
     'page callback'    => 'opennorth_represent_postcode_lookup_postcode_page',
     'page arguments'   => array(3),
+    'access callback'  => TRUE,
     'type'             => MENU_NORMAL_ITEM,
   );
 
   $items['opennorth/represent/postcode/%'] = array(
-    'title'           => 'Postal Code Look Up',
-    'description'     => t('Postal Code Look Up'),
-   'access callback'  => TRUE,
-   'page callback'    => 'opennorth_represent_postcode_lookup_postcode_page',
-   'page arguments'   => array(3),
-   'type'             => MENU_NORMAL_ITEM,
+    'title'            => 'Postal Code Look Up',
+    'description'      => t('Postal Code Look Up'),
+    'page callback'    => 'opennorth_represent_postcode_lookup_postcode_page',
+    'page arguments'   => array(3),
+    'access callback'  => TRUE,
+    'type'             => MENU_NORMAL_ITEM,
   );
   
   return $items;
@@ -61,7 +74,7 @@ function opennorth_represent_postcode_forms(){
 
 
 function opennorth_represent_postcode_lookup_postcode($postcode){
-  print _opennorth_represent_lookup_postcode($postcode);
+  print _opennorth_represent_postcode_lookup_postcode($postcode);
   exit;
 }
 
@@ -121,6 +134,7 @@ function opennorth_represent_postcode_lookup_postcode_form_submit($form, &$form_
 
 function _opennorth_represent_postcode_lookup_postcode($postcode){
   $postcode_clean = _opennorth_represent_postcode_format_postcode_for_url($postcode);
+
   if (! $postcode_clean){
     return false;
   }
