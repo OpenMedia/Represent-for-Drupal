@@ -1,7 +1,7 @@
 <?php
 
 
-define('OPENNORTH_HTTP_HOST', 'http://represent.opennorth.ca');
+define('OPENNORTH_HTTP_HOST', 'https://represent.opennorth.ca');
 
 /**
  * Implimentation of hook_init()
