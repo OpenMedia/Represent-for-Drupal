@@ -28,7 +28,7 @@
 
 (function($){
 	var settings = {
-		'url'    : 'http://represent.opennorth.ca',
+		'url'    : 'https://represent.opennorth.ca',
 		'format' : 'jsonp'
 	}
 	
